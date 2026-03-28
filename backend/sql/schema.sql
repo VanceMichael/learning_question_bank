@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `question` (
 CREATE TABLE IF NOT EXISTS `practice_record` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
     `user_id` BIGINT NOT NULL COMMENT '用户ID',
-    `subject_id` BIGINT NOT NULL COMMENT '科目ID',
+    `subject_id` BIGINT DEFAULT NULL COMMENT '科目ID',
     `total_count` INT NOT NULL DEFAULT 0 COMMENT '总题数',
     `correct_count` INT NOT NULL DEFAULT 0 COMMENT '正确数',
     `accuracy` DECIMAL(5,2) NOT NULL DEFAULT 0.00 COMMENT '正确率',
@@ -102,6 +102,23 @@ CREATE TABLE IF NOT EXISTS `operation_log` (
     KEY `idx_user` (`user_id`),
     KEY `idx_created` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='操作日志表';
+
+-- 错题表
+CREATE TABLE IF NOT EXISTS `wrong_question` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `question_id` BIGINT NOT NULL COMMENT '题目ID',
+    `subject_id` BIGINT NOT NULL COMMENT '科目ID',
+    `wrong_count` INT NOT NULL DEFAULT 1 COMMENT '错误次数',
+    `last_wrong_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '最后错误时间',
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_question` (`user_id`, `question_id`),
+    KEY `idx_user` (`user_id`),
+    KEY `idx_subject` (`subject_id`),
+    KEY `idx_question` (`question_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='错题表';
 
 -- 初始数据
 -- 初始用户由 DataInitializer 在应用启动时创建，密码均为 123456

@@ -56,4 +56,9 @@ public class QuestionController {
             @RequestParam(defaultValue = "20") int limit) {
         return Result.ok(questionService.getPracticeQuestions(subjectId, limit));
     }
+
+    @GetMapping("/by-ids")
+    public Result<List<Question>> getByIds(@RequestParam String ids) {
+        return Result.ok(questionService.getByIds(ids));
+    }
 }
