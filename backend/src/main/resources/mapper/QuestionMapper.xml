@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.questionbank.mapper.QuestionMapper">
+
+    <resultMap id="QuestionResultMap" type="com.questionbank.entity.Question">
+        <id column="id" property="id"/>
+        <result column="subject_id" property="subjectId"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="type" property="type"/>
+        <result column="content" property="content"/>
+        <result column="options" property="options" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result column="answer" property="answer" typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result column="analysis" property="analysis"/>
+        <result column="difficulty" property="difficulty"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="subject_name" property="subjectName"/>
+        <result column="creator_name" property="creatorName"/>
+    </resultMap>
+
+    <select id="selectPageWithDetail" resultMap="QuestionResultMap">
+        SELECT q.*, s.name as subject_name, u.nickname as creator_name
+        FROM question q
+        LEFT JOIN subject s ON q.subject_id = s.id
+        LEFT JOIN sys_user u ON q.creator_id = u.id
+        WHERE 1=1
+        <if test="subjectId != null"> AND q.subject_id = #{subjectId}</if>
+        <if test="type != null"> AND q.type = #{type}</if>
+        <if test="keyword != null and keyword != ''"> AND q.content LIKE CONCAT('%',#{keyword},'%')</if>
+        <if test="status != null"> AND q.status = #{status}</if>
+        ORDER BY q.created_at DESC
+    </select>
+
+    <select id="selectPracticeQuestions" resultMap="QuestionResultMap">
+        SELECT q.*, s.name as subject_name
+        FROM question q
+        LEFT JOIN subject s ON q.subject_id = s.id
+        WHERE q.subject_id = #{subjectId} AND q.status = 1
+        ORDER BY RAND()
+        LIMIT #{limit}
+    </select>
+
+</mapper>
