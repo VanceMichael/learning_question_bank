@@ -6,7 +6,6 @@ import java.util.List;
 
 @Data
 public class PracticeSubmitDTO {
-    @NotNull(message = "科目不能为空")
     private Long subjectId;
     @NotNull(message = "答题记录不能为空")
     private List<AnswerItem> answers;

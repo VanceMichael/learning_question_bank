@@ -74,4 +74,12 @@ public class QuestionService {
     public List<Question> getPracticeQuestions(Long subjectId, int limit) {
         return questionMapper.selectPracticeQuestions(subjectId, limit);
     }
+
+    public List<Question> getByIds(String ids) {
+        List<Long> idList = java.util.Arrays.stream(ids.split(","))
+                .map(String::trim)
+                .map(Long::parseLong)
+                .toList();
+        return questionMapper.selectBatchIds(idList);
+    }
 }

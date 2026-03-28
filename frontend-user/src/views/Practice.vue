@@ -130,12 +130,13 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getPracticeQuestions } from '@/api/question'
+import { getPracticeQuestions, getQuestionsByIds } from '@/api/question'
 import { submitPractice } from '@/api/practice'
 
 const route = useRoute()
 const router = useRouter()
 const subjectId = Number(route.params.subjectId)
+const questionIdsParam = route.query.questionIds as string
 
 const loading = ref(true)
 const submitting = ref(false)
@@ -147,6 +148,7 @@ const finished = ref(false)
 const showAnswers = ref(false)
 const result = ref<any>(null)
 const answerResults = ref<boolean[]>([])
+const isWrongPractice = ref(false)
 
 const currentQuestion = computed(() => questions.value[currentIndex.value] || {})
 const resultClass = computed(() => !result.value ? '' : Number(result.value.accuracy) >= 60 ? 'pass' : 'fail')
@@ -186,7 +188,11 @@ const handleSubmit = async () => {
   submitting.value = true
   try {
     const answers = questions.value.map((q, i) => ({ questionId: q.id, userAnswer: userAnswers.value[i] || '', sortOrder: i }))
-    const res: any = await submitPractice({ subjectId, answers })
+    const submitData: any = { answers }
+    if (!isWrongPractice.value) {
+      submitData.subjectId = subjectId
+    }
+    const res: any = await submitPractice(submitData)
     result.value = res.data
     answerResults.value = questions.value.map((q, i) => checkLocal(q, userAnswers.value[i] || ''))
     finished.value = true
@@ -207,8 +213,16 @@ const checkLocal = (q: any, ua: string): boolean => {
 
 onMounted(async () => {
   try {
-    const res: any = await getPracticeQuestions(subjectId, 20)
-    questions.value = res.data
+    if (questionIdsParam) {
+      isWrongPractice.value = true
+      const questionIds = JSON.parse(questionIdsParam)
+      const idsStr = questionIds.join(',')
+      const res: any = await getQuestionsByIds(idsStr)
+      questions.value = res.data
+    } else {
+      const res: any = await getPracticeQuestions(subjectId, 20)
+      questions.value = res.data
+    }
     userAnswers.value = new Array(questions.value.length).fill('')
   } finally { loading.value = false }
 })

@@ -29,6 +29,7 @@ public class PracticeService {
     private final PracticeRecordMapper recordMapper;
     private final PracticeDetailMapper detailMapper;
     private final QuestionMapper questionMapper;
+    private final WrongQuestionService wrongQuestionService;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -49,6 +50,7 @@ public class PracticeService {
 
             boolean isCorrect = checkAnswer(question, item.getUserAnswer());
             if (isCorrect) correctCount++;
+            else wrongQuestionService.addWrongQuestion(userId, question.getId(), question.getSubjectId());
 
             PracticeDetail detail = new PracticeDetail();
             detail.setQuestionId(item.getQuestionId());
@@ -60,7 +62,14 @@ public class PracticeService {
 
         PracticeRecord record = new PracticeRecord();
         record.setUserId(userId);
-        record.setSubjectId(dto.getSubjectId());
+        if (dto.getSubjectId() != null) {
+            record.setSubjectId(dto.getSubjectId());
+        } else if (!answers.isEmpty()) {
+            Question firstQuestion = questionMapper.selectById(answers.get(0).getQuestionId());
+            if (firstQuestion != null) {
+                record.setSubjectId(firstQuestion.getSubjectId());
+            }
+        }
         record.setTotalCount(details.size());
         record.setCorrectCount(correctCount);
         BigDecimal accuracy = details.isEmpty() ? BigDecimal.ZERO :

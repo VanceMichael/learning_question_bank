@@ -28,3 +28,6 @@ export const deleteQuestion = (id: number) =>
 
 export const getPracticeQuestions = (subjectId: number, limit = 20) =>
   request.get('/questions/practice', { params: { subjectId, limit } })
+
+export const getQuestionsByIds = (ids: string) =>
+  request.get('/questions/by-ids', { params: { ids } })
