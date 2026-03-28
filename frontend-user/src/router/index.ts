@@ -23,6 +23,7 @@ const router = createRouter({
         { path: 'questions/add', name: 'AddQuestion', component: () => import('@/views/QuestionForm.vue') },
         { path: 'questions/edit/:id', name: 'EditQuestion', component: () => import('@/views/QuestionForm.vue') },
         { path: 'records', name: 'Records', component: () => import('@/views/Records.vue') },
+        { path: 'wrong-questions', name: 'WrongQuestions', component: () => import('@/views/WrongQuestions.vue') },
       ],
     },
   ],

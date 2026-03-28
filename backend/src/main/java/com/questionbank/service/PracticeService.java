@@ -30,6 +30,7 @@ public class PracticeService {
     private final PracticeDetailMapper detailMapper;
     private final QuestionMapper questionMapper;
     private final ObjectMapper objectMapper;
+    private final WrongQuestionService wrongQuestionService;
 
     @Transactional
     public PracticeRecord submit(PracticeSubmitDTO dto) {
@@ -74,6 +75,14 @@ public class PracticeService {
         for (PracticeDetail detail : details) {
             detail.setRecordId(record.getId());
             detailMapper.insert(detail);
+            
+            // 如果回答错误，添加到错题本
+            if (detail.getIsCorrect() == 0) {
+                Question question = questionMapper.selectById(detail.getQuestionId());
+                if (question != null) {
+                    wrongQuestionService.addOrUpdateWrongQuestion(userId, detail.getQuestionId(), question.getSubjectId());
+                }
+            }
         }
 
         log.info("Practice submitted: userId={}, subjectId={}, accuracy={}%", userId, dto.getSubjectId(), accuracy);

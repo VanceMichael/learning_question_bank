@@ -103,6 +103,21 @@ CREATE TABLE IF NOT EXISTS `operation_log` (
     KEY `idx_created` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='操作日志表';
 
+-- 错题本表
+CREATE TABLE IF NOT EXISTS `wrong_question` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `question_id` BIGINT NOT NULL COMMENT '题目ID',
+    `subject_id` BIGINT NOT NULL COMMENT '科目ID',
+    `wrong_count` INT NOT NULL DEFAULT 1 COMMENT '错误次数',
+    `first_wrong_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '第一次错误时间',
+    `last_wrong_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后一次错误时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_question` (`user_id`, `question_id`),
+    KEY `idx_user_subject` (`user_id`, `subject_id`),
+    KEY `idx_user` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='错题本表';
+
 -- 初始数据
 -- 初始用户由 DataInitializer 在应用启动时创建，密码均为 123456
 
