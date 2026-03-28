@@ -3,6 +3,8 @@ package com.questionbank.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.questionbank.common.BusinessException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.questionbank.entity.Question;
 import com.questionbank.entity.WrongQuestion;
 import com.questionbank.mapper.WrongQuestionMapper;
 import com.questionbank.security.SecurityUtil;
@@ -13,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -20,6 +23,7 @@ import java.util.List;
 public class WrongQuestionService {
 
     private final WrongQuestionMapper wrongQuestionMapper;
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public void addOrUpdateWrongQuestion(Long userId, Long questionId, Long subjectId) {
@@ -69,10 +73,69 @@ public class WrongQuestionService {
 
     public List<WrongQuestion> getWrongQuestions(Long subjectId) {
         Long userId = SecurityUtil.getCurrentUserId();
+        List<Map<String, Object>> results;
         if (subjectId != null) {
-            return wrongQuestionMapper.selectByUserIdAndSubjectIdWithDetails(userId, subjectId);
+            results = wrongQuestionMapper.selectByUserIdAndSubjectIdWithDetails(userId, subjectId);
         } else {
-            return wrongQuestionMapper.selectByUserIdWithDetails(userId);
+            results = wrongQuestionMapper.selectByUserIdWithDetails(userId);
+        }
+        
+        return results.stream().map(this::convertToWrongQuestion).toList();
+    }
+    
+    private WrongQuestion convertToWrongQuestion(Map<String, Object> map) {
+        WrongQuestion wq = new WrongQuestion();
+        wq.setId((Long) map.get("id"));
+        wq.setUserId((Long) map.get("user_id"));
+        wq.setQuestionId((Long) map.get("question_id"));
+        wq.setSubjectId((Long) map.get("subject_id"));
+        wq.setWrongCount((Integer) map.get("wrong_count"));
+        wq.setFirstWrongAt((LocalDateTime) map.get("first_wrong_at"));
+        wq.setLastWrongAt((LocalDateTime) map.get("last_wrong_at"));
+        wq.setSubjectName((String) map.get("subject_name"));
+        
+        Question question = new Question();
+        question.setId((Long) map.get("q_id"));
+        question.setSubjectId((Long) map.get("q_subject_id"));
+        question.setCreatorId((Long) map.get("q_creator_id"));
+        question.setType((Integer) map.get("q_type"));
+        question.setContent((String) map.get("q_content"));
+        question.setOptions(convertToOptionsList((String) map.get("q_options")));
+        question.setAnswer(convertToAnswer((String) map.get("q_answer")));
+        question.setAnalysis((String) map.get("q_analysis"));
+        question.setDifficulty((Integer) map.get("q_difficulty"));
+        question.setStatus((Integer) map.get("q_status"));
+        question.setCreatedAt((LocalDateTime) map.get("q_created_at"));
+        question.setUpdatedAt((LocalDateTime) map.get("q_updated_at"));
+        
+        wq.setQuestion(question);
+        return wq;
+    }
+    
+    private List<String> convertToOptionsList(String options) {
+        if (options == null || options.isEmpty()) {
+            return null;
+        }
+        try {
+            return objectMapper.readValue(
+                options, 
+                objectMapper.getTypeFactory().constructCollectionType(List.class, String.class)
+            );
+        } catch (Exception e) {
+            log.error("Failed to convert options: {}", options, e);
+            return null;
+        }
+    }
+    
+    private Object convertToAnswer(String answer) {
+        if (answer == null || answer.isEmpty()) {
+            return null;
+        }
+        try {
+            return objectMapper.readValue(answer, Object.class);
+        } catch (Exception e) {
+            log.error("Failed to convert answer: {}", answer, e);
+            return answer;
         }
     }
 
