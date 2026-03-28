@@ -29,13 +29,13 @@ export interface Question {
 }
 
 export function getWrongQuestions(subjectId?: number) {
-  return request.get<WrongQuestion[]>('/api/wrong-questions', { params: { subjectId } })
+  return request.get<WrongQuestion[]>('/wrong-questions', { params: { subjectId } })
 }
 
 export function getWrongQuestionList(subjectId?: number) {
-  return request.get<Question[]>('/api/wrong-questions/questions', { params: { subjectId } })
+  return request.get<Question[]>('/wrong-questions/questions', { params: { subjectId } })
 }
 
 export function removeWrongQuestion(questionId: number) {
-  return request.delete(`/api/wrong-questions/${questionId}`)
+  return request.delete(`/wrong-questions/${questionId}`)
 }
